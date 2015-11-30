@@ -1,0 +1,124 @@
+Multiple Flavors from a Single Generative RNN
+
+Background:
+
+One can think of art as having a substance and a form.  The substance
+might be some artistic statement about the human condition or about society
+or emotion or any number of things.  The form is the structure inside which
+the substance is expressed.  The form might be twelve bar blues, haiku,
+sculpture, impressionist oil painting etc.  Machine learning has advanced to
+the point where it can mimic the form of art.  As early as 1997 a computer
+program was able to create a convincing Bach.[1]  Using modern Recurrent
+Neural Networks one can easily generate text in the style of Wikipedia,
+Shakespeare, or C code.[2]  We could debate whether computer generated Bach
+has the same artistic value as the real thing but certainly the computer
+generated Wikipedia article is nonsense and the computer generated C, although
+it might compile, doesn't do much.  It is natural then to ask the question:
+When is it useful to generate the form of art without the substance?
+
+Music as White Noise:
+
+Music serves many purposes and no doubt artistic expression is chief among them.
+However, with the advent of "open office" workspaces, workers are
+turning to music to drown out the increasing number of distractions in the
+workplace.  It is convenient to use Pandora as a source of this music but
+Pandora must pay licensing fees for the music it plays and therefore must play
+ads, which are just as distracting as a colleague's sniffles.  What if a computer
+generated the music?  In that case perhaps less obtrusive ads would be
+sufficient to cover the costs.  Similar to Pandora, I believe users would want
+the site to play songs with the familiar structure of music, and would want to
+be able to customize the sound.  Unlike Pandora, this type of app wouldn't
+provide much in the way of artistic substance - I don't think this would be
+a problem for users just looking to drown out distractions.
+
+Starting Small:
+
+This project does not aim to launch a fully functional Pandora competitor.
+Instead we will focus on a reasonable sized chunk of the problem.  As we've
+seen, RNNs can generate text in various styles.  In [2] the author trained a
+different RNN for each style of text he wanted to generate.  In the case of
+Pandora, the 'style' of music is a point in a high dimensional vector space.
+The curse of dimensionality makes it infeasible to train a collection of RNNs
+that would form any kind of reasonable covering of this space.  To solve this
+problem we will modify the approach slightly.  Instead of training multiple
+RNNs, one per style, we will train a single RNN and during training we will add
+a style vector as an additional input.  The RNN will learn to use this style
+vector to make more accurate predictions as to what will come next.  Then when
+we want to generate from a particular style we will input the desired style
+vector.  The goal of this project will be for the RNN to output text of the
+desired style.
+
+For simplicities sake we will work with text (poetry) instead of music.  Our
+most basic style vector will be a one-hot vector of [sonnet, limerick, haiku].
+
+Data:
+
+It takes a lot of data to train an RNN.  There is plenty of poetry available
+for free online, unfortunately most of the collections seem to be rather small.
+We estimate it will take 2 days to gather and transform the data into a
+good input format.
+
+https://archive.org/stream/shakespearessonn01041gut/wssnt10.txt - download
+http://www.sonnets.org/ - scrape
+https://archive.org/stream/700limericklyric00vauguoft/700limericklyric00vauguoft_djvu.txt - download
+http://www.ebearing.com/break/limericks.htm
+https://archive.org/stream/smileonfacetige01boltgoog/smileonfacetige01boltgoog_djvu.txt
+http://sacred-texts.com/shi/jh/jh02.htm
+
+Technical Details:
+
+We will modify an existing Tensor Flow RNN [3] with the proposed style vector
+input.  We will train the model on GPU enabled EC2 instances and then create
+a friendly interface to allow users to generate poems of the desired style.
+
+Optional extensions would include trying a word level rather than character
+level RNN as discussed in [4] and extending the style vector to include more
+stylistic elements such as author, theme, or emotion.
+
+Preliminary work:
+
+We have already forked [3] and trained for about an hour on a laptop with an
+89kb corpus of Dr. Seuss.  Here's a sample of the generated text:
+
+ave no fear!
+He hasse hands’t be use as ifney’s in your all way.
+Beffeciled with greet. I’m this at all.
+
+I'm kind of Salla-sone
+And we wish heart
+Is what they call...
+
+...a tweetle beetle noodle poodle bottled paddled
+muddled duddled fuddled wuddled fox in socks, sir!
+
+Fox in socks, our game is done, sir.
+Thank you up the Z5Lu they walk?”
+Then we caw you open’t eaych!”
+
+“My wrop only Dad’s realed Said. “Don’t you two.
+And I hope they may will hit pick!”
+He cats and too
+
+This suggests we need a larger corpus and more training.  We have already
+trained Tensor Flow neural networks on EC2 and found about a 16x speedup over a
+laptop[5].  If we trained the RNN overnight that would be another 10x increase
+in training.  We are optimistic that the 160x increase in training combined with
+other improvements will lead to more impressive results.
+
+Task Breakdown:
+
+Define the structure of training data - 1 hr
+Gather data, label it, clean and transform into correct structure - 2 days
+Modify Tensor Flow RNN to accept additional input - 2 days
+Train small models and iterate on RNN code - 2 days
+Train large models - asynchronous
+Build simple website on AWS to allow users to play with the model - 2 days
+Polish github repo - 4 hours.
+
+Total: 9 days
+
+[1] http://www.nytimes.com/1997/11/11/science/undiscovered-bach-no-a-computer-wrote-it.html
+[2] http://karpathy.github.io/2015/05/21/rnn-effectiveness/
+[3] https://github.com/sherjilozair/char-rnn-tensorflow
+[4] http://www.tensorflow.org/tutorials/word2vec/index.html#vector-representations-of-words
+[5] https://github.com/datamath28/TensorFlow/blob/master/README.md
